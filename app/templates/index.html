@@ -1,20 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honeypot Dashboard</title>
+    <title>Legacy Honeypot Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Honeypot Dashboard</h1>
-        <h2>Attack Logs</h2>
-        <ul>
-            {% for log in logs %}
-            <li>{{ log }}</li>
+        <h1>Legacy Honeypot Dashboard</h1>
+        <p>The maintained legacy sensor logs metadata only: source endpoint, byte count and SHA-256 of the received fragment. Raw payload data is not retained.</p>
+
+        <h2>Recent events</h2>
+        {% if logs %}
+        <table>
+            <thead>
+                <tr><th>Time (UTC)</th><th>Event</th><th>Source</th><th>Bytes</th><th>Payload SHA-256</th></tr>
+            </thead>
+            <tbody>
+            {% for event in logs %}
+                <tr>
+                    <td>{{ event.get('timestamp_utc', '') }}</td>
+                    <td>{{ event.get('event_type', '') }}</td>
+                    <td>{{ event.get('source_ip', '') }}{% if event.get('source_port') %}:{{ event.get('source_port') }}{% endif %}</td>
+                    <td>{{ event.get('received_bytes', '') }}</td>
+                    <td>{{ event.get('payload_sha256', '') }}</td>
+                </tr>
             {% endfor %}
-        </ul>
+            </tbody>
+        </table>
+        {% else %}
+            <p>No events recorded yet.</p>
+        {% endif %}
     </div>
 </body>
 </html>
