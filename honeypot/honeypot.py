@@ -14,6 +14,11 @@ _MAX_READ_BYTES = 1024
 
 
 def validate_bind(bind_host: str, port: int, *, expose: bool = False) -> tuple[str, int]:
+    """Validate the legacy sensor's IPv4 bind configuration.
+
+    This module intentionally creates an ``AF_INET`` socket. Reject IPv6 here
+    rather than accepting a configuration that would fail later during bind().
+    """
     host = bind_host.strip()
     if not host:
         raise ValueError("bind host must not be empty")
@@ -24,10 +29,12 @@ def validate_bind(bind_host: str, port: int, *, expose: bool = False) -> tuple[s
         address = ipaddress.ip_address(host)
     except ValueError:
         if host != "localhost":
-            raise ValueError("bind host must be a literal IP address or localhost")
+            raise ValueError("bind host must be a literal IPv4 address or localhost")
         address = ipaddress.ip_address("127.0.0.1")
         host = "127.0.0.1"
 
+    if address.version != 4:
+        raise ValueError("legacy sensor supports IPv4 binds only")
     if not address.is_loopback and not expose:
         raise ValueError("non-loopback binding requires explicit expose=True")
     return host, port
@@ -54,9 +61,9 @@ def start_honeypot(
 ) -> None:
     """Run a bounded single-threaded TCP sensor until *stop_event* is set."""
     host, port = validate_bind(bind_host, port, expose=expose)
-    if not 1 <= max_read_bytes <= 4096:
+    if not isinstance(max_read_bytes, int) or isinstance(max_read_bytes, bool) or not 1 <= max_read_bytes <= 4096:
         raise ValueError("max_read_bytes must be between 1 and 4096")
-    if not 0.1 <= client_timeout <= 10.0:
+    if isinstance(client_timeout, bool) or not isinstance(client_timeout, (int, float)) or not 0.1 <= client_timeout <= 10.0:
         raise ValueError("client_timeout must be between 0.1 and 10 seconds")
 
     stopper = stop_event or threading.Event()
