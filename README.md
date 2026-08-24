@@ -5,6 +5,7 @@ This repository is the **legacy** honeypot prototype. The 2026 maintenance branc
 ## 2026 safety refresh
 
 - sensor bind defaults to `127.0.0.1:8080`;
+- the legacy sensor accepts IPv4 bind addresses only and rejects IPv6 before socket creation;
 - a non-loopback sensor address requires the explicit `--expose` flag;
 - the Flask dashboard always binds to `127.0.0.1` with debug/reloader disabled;
 - client reads are bounded to 1024 bytes by default and have a timeout;
